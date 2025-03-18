@@ -13,4 +13,15 @@ public sealed class NetworkManager : MonoBehaviourPunCallbacks
         Debug.Log("Connected to Photon Master Server");
         PhotonNetwork.JoinLobby();
     }
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("Joined the lobby! Create or enter the room...");
+        PhotonNetwork.JoinOrCreateRoom("BattleRoom", new Photon.Realtime.RoomOptions { MaxPlayers = 4 }, default);
+    }
+
+    public override void OnJoinedRoom()
+    {
+        Debug.Log("Successfully entered the room");
+    }
 }
