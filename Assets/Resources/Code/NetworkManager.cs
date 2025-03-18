@@ -23,5 +23,6 @@ public sealed class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         Debug.Log("Successfully entered the room");
+        PhotonNetwork.Instantiate("PlayerCube", new Vector3(Random.Range(-3, 3), 0, Random.Range(-3, 3)), Quaternion.identity);
     }
 }
