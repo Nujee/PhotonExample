@@ -16,7 +16,7 @@ public sealed class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("Joined the lobby! Create or enter the room...");
+        Debug.Log("Joined the lobby. Create or enter the room...");
         PhotonNetwork.JoinOrCreateRoom("BattleRoom", new Photon.Realtime.RoomOptions { MaxPlayers = 4 }, default);
     }
 
