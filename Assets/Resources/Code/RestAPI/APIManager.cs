@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -7,6 +8,14 @@ public class APIManager : MonoBehaviour
 {
     private string apiUrl = "https://jsonplaceholder.typicode.com/posts";
 
+    public enum HttpMethodType
+    {
+        Get,
+        Post,
+        Put,
+        Delete
+    }
+
     void Start()
     {
         StartCoroutine(ExecuteRequestsInOrder());
@@ -14,76 +23,67 @@ public class APIManager : MonoBehaviour
 
     IEnumerator ExecuteRequestsInOrder()
     {
+        string jsonData;
+
         Debug.Log("Processing GET-request...");
-        yield return StartCoroutine(GetRequest(apiUrl + "/1"));
+        yield return StartCoroutine(SendRequest(apiUrl + "/1", HttpMethodType.Get));
 
         Debug.Log("Processing POST-request...");
-        yield return StartCoroutine(PostRequest(apiUrl, "{ \"title\": \"New Post\", \"body\": \"Post body\", \"userId\": 1 }"));
+        jsonData = "{ \"title\": \"New Post\", \"body\": \"Post body\", \"userId\": 1 }";
+        yield return StartCoroutine(SendRequest(apiUrl, HttpMethodType.Post, jsonData));
 
         Debug.Log("Processing PUT-request...");
-        yield return StartCoroutine(PutRequest(apiUrl + "/1", "{ \"title\": \"Updated Title\", \"body\": \"Updated Body\", \"userId\": 1 }"));
+        jsonData = "{ \"title\": \"Updated Title\", \"body\": \"Updated Body\", \"userId\": 1 }";
+        yield return StartCoroutine(SendRequest(apiUrl + "/1", HttpMethodType.Put, jsonData));
 
         Debug.Log("Processing DELETE-request...");
-        yield return StartCoroutine(DeleteRequest(apiUrl + "/1"));
+        yield return StartCoroutine(SendRequest(apiUrl + "/1", HttpMethodType.Delete));
 
         Debug.Log("All requests are completed!");
     }
 
-    // GET-request - fetch data
-    IEnumerator GetRequest(string url)
+    private IEnumerator SendRequest(string url, HttpMethodType method, string jsonData = null)
     {
-        using UnityWebRequest request = UnityWebRequest.Get(url);
-        yield return request.SendWebRequest();
+        UnityWebRequest request;
 
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("GET-request error: " + request.error);
-        else
-            Debug.Log("GET-response: " + request.downloadHandler.text);
-    }
+        switch (method)
+        {
+            case HttpMethodType.Get:
+                request = UnityWebRequest.Get(url);
+                break;
+            case HttpMethodType.Delete:
+                request = UnityWebRequest.Delete(url);
+                break;
+            case HttpMethodType.Post:
+            case HttpMethodType.Put:
+                request = new UnityWebRequest(url, method.ToString().ToUpper());
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData ?? "");
+                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                break;
+            default:
+                throw new NotSupportedException($"Method {method} is not supported.");
+        }
 
-    // POST-request - create data
-    IEnumerator PostRequest(string url, string jsonData)
-    {
-        using UnityWebRequest request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
+        using (request)
+        {
+            if (method == HttpMethodType.Get || method == HttpMethodType.Delete)
+            {
+                request.downloadHandler = new DownloadHandlerBuffer();
+            }
 
-        yield return request.SendWebRequest();
+            yield return request.SendWebRequest();
 
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("POST-request error: " + request.error);
-        else
-            Debug.Log("POST-response: " + request.downloadHandler.text);
-    }
-
-    // PUT-request - delete data
-    IEnumerator PutRequest(string url, string jsonData)
-    {
-        using UnityWebRequest request = new UnityWebRequest(url, "PUT");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("PUT-request error: " + request.error);
-        else
-            Debug.Log("PUT-response: " + request.downloadHandler.text);
-    }
-
-    // DELETE-request - data deletion
-    IEnumerator DeleteRequest(string url)
-    {
-        using UnityWebRequest request = UnityWebRequest.Delete(url);
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("DELETE-request error: " + request.error);
-        else
-            Debug.Log("DELETE-request completed successfully, response code: " + request.responseCode);
+            if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError($"{method}-request error: {request.error}");
+            }
+            else
+            {
+                string response = request.downloadHandler?.text;
+                Debug.Log($"{method}-response: {(string.IsNullOrEmpty(response) ? request.responseCode.ToString() : response)}");
+            }
+        }
     }
 }
