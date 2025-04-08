@@ -14,34 +14,34 @@ public class APIManager : MonoBehaviour
 
     IEnumerator ExecuteRequestsInOrder()
     {
-        Debug.Log("Выполняем GET-запрос...");
+        Debug.Log("Processing GET-request...");
         yield return StartCoroutine(GetRequest(apiUrl + "/1"));
 
-        Debug.Log("Выполняем POST-запрос...");
+        Debug.Log("Processing POST-request...");
         yield return StartCoroutine(PostRequest(apiUrl, "{ \"title\": \"New Post\", \"body\": \"Post body\", \"userId\": 1 }"));
 
-        Debug.Log("Выполняем PUT-запрос...");
+        Debug.Log("Processing PUT-request...");
         yield return StartCoroutine(PutRequest(apiUrl + "/1", "{ \"title\": \"Updated Title\", \"body\": \"Updated Body\", \"userId\": 1 }"));
 
-        Debug.Log("Выполняем DELETE-запрос...");
+        Debug.Log("Processing DELETE-request...");
         yield return StartCoroutine(DeleteRequest(apiUrl + "/1"));
 
-        Debug.Log("Все запросы выполнены!");
+        Debug.Log("All requests are completed!");
     }
 
-    // GET-запрос (получение данных)
+    // GET-request - fetch data
     IEnumerator GetRequest(string url)
     {
         using UnityWebRequest request = UnityWebRequest.Get(url);
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("Ошибка GET-запроса: " + request.error);
+            Debug.LogError("GET-request error: " + request.error);
         else
-            Debug.Log("GET-ответ: " + request.downloadHandler.text);
+            Debug.Log("GET-response: " + request.downloadHandler.text);
     }
 
-    // POST-запрос (создание данных)
+    // POST-request - create data
     IEnumerator PostRequest(string url, string jsonData)
     {
         using UnityWebRequest request = new UnityWebRequest(url, "POST");
@@ -53,12 +53,12 @@ public class APIManager : MonoBehaviour
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("Ошибка POST-запроса: " + request.error);
+            Debug.LogError("POST-request error: " + request.error);
         else
-            Debug.Log("POST-ответ: " + request.downloadHandler.text);
+            Debug.Log("POST-response: " + request.downloadHandler.text);
     }
 
-    // PUT-запрос (обновление данных)
+    // PUT-request - delete data
     IEnumerator PutRequest(string url, string jsonData)
     {
         using UnityWebRequest request = new UnityWebRequest(url, "PUT");
@@ -70,20 +70,20 @@ public class APIManager : MonoBehaviour
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("Ошибка PUT-запроса: " + request.error);
+            Debug.LogError("PUT-request error: " + request.error);
         else
-            Debug.Log("PUT-ответ: " + request.downloadHandler.text);
+            Debug.Log("PUT-response: " + request.downloadHandler.text);
     }
 
-    // DELETE-запрос (удаление данных)
+    // DELETE-request - data deletion
     IEnumerator DeleteRequest(string url)
     {
         using UnityWebRequest request = UnityWebRequest.Delete(url);
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-            Debug.LogError("Ошибка DELETE-запроса: " + request.error);
+            Debug.LogError("DELETE-request error: " + request.error);
         else
-            Debug.Log("DELETE успешно выполнен, код ответа: " + request.responseCode);
+            Debug.Log("DELETE-request completed successfully, response code: " + request.responseCode);
     }
 }
