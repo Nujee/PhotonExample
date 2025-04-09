@@ -16,12 +16,12 @@ public class APIManager : MonoBehaviour
         Delete
     }
 
-    void Start()
+    private void Start()
     {
         StartCoroutine(ExecuteRequestsInOrder());
     }
 
-    IEnumerator ExecuteRequestsInOrder()
+    private IEnumerator ExecuteRequestsInOrder()
     {
         string jsonData;
 
